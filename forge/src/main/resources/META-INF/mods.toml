@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+issueTrackerURL = "https://github.com/JensenJ-Modding/YouShallNotPatrol/issues"
+license = "MIT License"
+
+[[mods]]
+modId = "youshallnotpatrol"
+version = "${version}"
+displayName = "You Shall Not Patrol"
+authors = "JensenJ - Developer"
+description = '''
+Adds controls for the spawning of Pillagers and Wandering Traders.
+'''
+
+[[dependencies.youshallnotpatrol]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.youshallnotpatrol]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.youshallnotpatrol]]
+modId = "architectury"
+mandatory = true
+versionRange = "[9.2.14,)"
+ordering = "AFTER"
+side = "BOTH"

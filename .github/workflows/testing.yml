@@ -1,0 +1,106 @@
+name: Testing
+
+on:
+  push:
+    branches:
+      - "1.20.1"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: 17
+  #Use this url to get the download URL for a project on curseforge: https://cursemaven.com/test/{PROJECT_ID}/{FILE_ID}
+  ARCHITECTURY_CF_FORGE_URL: https://edge.forgecdn.net/files/5137/938/architectury-9.2.14-forge.jar
+  ARCHITECTURY_CF_FABRIC_URL: https://edge.forgecdn.net/files/5137/936/architectury-9.2.14-fabric.jar
+  FORGECONFIGAPIPORT_CF_FABRIC_URL: https://edge.forgecdn.net/files/5902/421/ForgeConfigAPIPort-v8.0.1-1.20.1-Fabric.jar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11"
+          cache-read-only: false
+
+      - name: Build
+        run: gradle build -PbuildNumber=${{ github.run_number }}
+
+      - name: Setup environment variables
+        run: |
+          echo "MOD_VERSION=$(grep '^mod_version' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+          echo "MINECRAFT_VERSION=$(grep '^minecraft_version' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+          echo "ARCHIVES_NAME=$(grep '^archives_name' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts - ${{ env.ARCHIVES_NAME }}-${{ env.MINECRAFT_VERSION }}-${{ env.MOD_VERSION }}+${{ github.run_number }}
+          retention-days: 1
+          path: |
+            common/build/libs/
+            fabric/build/libs/
+            forge/build/libs/
+
+  launch-client:
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [forge, fabric]
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup environment variables
+        run: |
+          echo "MOD_VERSION=$(grep '^mod_version' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+          echo "MINECRAFT_VERSION=$(grep '^minecraft_version' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+          echo "FABRIC_API_VERSION=$(grep '^fabric_api_version' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+          echo "ARCHIVES_NAME=$(grep '^archives_name' gradle.properties | awk -F '=' '{gsub(/ /, "", $2); print $2}')" >> "$GITHUB_ENV"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Artifacts - ${{ env.ARCHIVES_NAME }}-${{ env.MINECRAFT_VERSION }}-${{ env.MOD_VERSION }}+${{ github.run_number }}
+
+      - name: Move artifact to run/mods
+        run: |
+          mkdir -p run/mods
+          cp ${{ matrix.loader }}/build/libs/${{env.ARCHIVES_NAME}}-${{ matrix.loader }}-${{ env.MINECRAFT_VERSION }}-${{ env.MOD_VERSION }}+${{ github.run_number }}.jar run/mods
+
+      - name: Download forge dependencies to run/mods
+        if: matrix.loader == 'forge'
+        run: |
+          wget ${{env.ARCHITECTURY_CF_FORGE_URL}} -O run/mods/architectury-api.jar
+
+      - name: Download fabric dependencies to run/mods
+        if: matrix.loader == 'fabric'
+        run: |
+          wget ${{env.ARCHITECTURY_CF_FABRIC_URL}} -O run/mods/architectury-api.jar
+          wget ${{env.FORGECONFIGAPIPORT_CF_FABRIC_URL}} -O run/mods/forgeconfigapiport.jar
+
+      # Lock to a specific commit, incase of breaking changes
+      - name: Test Client
+        uses: 3arthqu4ke/mc-runtime-test@077c3b731692cc531233c711688ea14a6f4a6622
+        with:
+          mc: ${{ env.MINECRAFT_VERSION }}
+          modloader: ${{ matrix.loader }}
+          regex: .*${{ matrix.loader }}.*
+          #this action expects forge to be lexforge, when migrating to neoforge we can just use matrix.loader directly
+          mc-runtime-test: ${{ matrix.loader == 'forge' && 'lexforge' || 'fabric' }}
+          java: ${{ env.JAVA_VERSION }}
+          fabric-api: ${{ matrix.loader == 'fabric' && env.FABRIC_API_VERSION || 'none' }}
