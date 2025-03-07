@@ -29,16 +29,16 @@ public class PatrolSpawnerMixin {
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getCurrentDifficultyAt(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/DifficultyInstance;"))
     private void youshallnotpatrol$setSelectedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir, @Local Player player){
-        YouShallNotPatrol.LOGGER.warn("Patrol Spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$selectedPlayer);
         youshallnotpatrol$selectedPlayer = (ServerPlayer) player;
+        YouShallNotPatrol.LOGGER.warn("Patrol Spawned. Set {} to the selectedPlayer", youshallnotpatrol$selectedPlayer);
     }
 
     @Inject(method = "tick", at = @At(value = "RETURN"))
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir){
 
         if(cir.getReturnValue() > 1) { //If n is greater than 1 it means the patrol spawned successfully. N can be 1 in the case an attempt was made but the leader failed to spawn.
-            YouShallNotPatrol.LOGGER.warn("Attempting Patrol Spawn. Set {} to the selectedPlayer", youshallnotpatrol$selectedPlayer);
             youshallnotpatrol$lastTargetedPlayer = youshallnotpatrol$selectedPlayer;
+            YouShallNotPatrol.LOGGER.warn("Attempting Patrol Spawn. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayer);
         }
     }
 
@@ -50,15 +50,9 @@ public class PatrolSpawnerMixin {
         }
     }
 
+    //Note: this method overrides the original calculation used for pillager spawn rate.
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I", ordinal = 1))
-    private int youshallnotpatrol$ShouldPatrolSpawn(int original, @Local RandomSource source, @Local(argsOnly = true) ServerLevel level){
-
-        //TODO: Improve mod compat of this? Original value (could be modified by other mods) is not taken into account, which may be desirable
-        if (original != 5){
-            YouShallNotPatrol.LOGGER.warn("Another mod has modified the vanilla Pillager Patrol spawn rate. We will not affect the spawn rate. Expected 5. Got {}. Please report to YouShallNotPatrol with modlist.", original);
-            return original;
-        }
-
+    private int youshallnotpatrol$shouldPatrolSpawn(int original, @Local RandomSource source, @Local(argsOnly = true) ServerLevel level){
         //If the returned value is 0, a patrol will try to spawn
         int randomChance = source.nextInt(100);
         int spawnChance = ServerConfig.pillagerSpawnChance.get();
@@ -69,7 +63,7 @@ public class PatrolSpawnerMixin {
     }
 
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;players()Ljava/util/List;"))
-    private List<ServerPlayer> youshallnotpatrol$ModifyPlayerList(List<ServerPlayer> original, @Local(argsOnly = true) ServerLevel level){
+    private List<ServerPlayer> youshallnotpatrol$modifyPlayerList(List<ServerPlayer> original, @Local(argsOnly = true) ServerLevel level){
         //If there is only one player, then we should return the original list
         if(level.players().size() == 1) {
             YouShallNotPatrol.LOGGER.warn("Only 1 player, spawning patrol with normal player selection.");
