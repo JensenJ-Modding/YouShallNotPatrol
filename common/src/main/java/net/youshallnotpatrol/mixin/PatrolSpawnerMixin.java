@@ -2,6 +2,7 @@ package net.youshallnotpatrol.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -15,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(value = PatrolSpawner.class, priority = 100)
@@ -30,16 +32,13 @@ public class PatrolSpawnerMixin {
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getCurrentDifficultyAt(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/DifficultyInstance;"))
     private void youshallnotpatrol$setSelectedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir, @Local Player player){
         youshallnotpatrol$selectedPlayer = (ServerPlayer) player;
-        YouShallNotPatrol.LOGGER.warn("Patrol Spawned. Set {} to the selectedPlayer", youshallnotpatrol$selectedPlayer);
+        YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. {} is the selectedPlayer", youshallnotpatrol$selectedPlayer);
     }
 
-    @Inject(method = "tick", at = @At(value = "RETURN"))
-    private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir){
-
-        if(cir.getReturnValue() > 1) { //If n is greater than 1 it means the patrol spawned successfully. N can be 1 in the case an attempt was made but the leader failed to spawn.
-            youshallnotpatrol$lastTargetedPlayer = youshallnotpatrol$selectedPlayer;
-            YouShallNotPatrol.LOGGER.warn("Attempting Patrol Spawn. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayer);
-        }
+    @Inject(method = "spawnPatrolMember", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/PatrollingMonster;setPatrolLeader(Z)V"))
+    private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, boolean bl, CallbackInfoReturnable<Boolean> cir){
+        youshallnotpatrol$lastTargetedPlayer = youshallnotpatrol$selectedPlayer;
+        YouShallNotPatrol.LOGGER.warn("Patrol leader spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayer);
     }
 
     @Inject(method = "tick", at = @At(value = "HEAD"), cancellable = true)
@@ -56,28 +55,26 @@ public class PatrolSpawnerMixin {
         //If the returned value is 0, a patrol will try to spawn
         int randomChance = source.nextInt(100);
         int spawnChance = ServerConfig.pillagerSpawnChance.get();
-        if(!level.players().isEmpty()) {
-            YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. Random roll was {}. Spawn chance is {}", randomChance, spawnChance);
-        }
+        YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. Random roll was {}. Spawn chance is {}", randomChance, spawnChance);
         return randomChance < spawnChance ? 0 : 1;
     }
 
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;players()Ljava/util/List;"))
     private List<ServerPlayer> youshallnotpatrol$modifyPlayerList(List<ServerPlayer> original, @Local(argsOnly = true) ServerLevel level){
-        //If there is only one player, then we should return the original list
         if(level.players().size() == 1) {
             YouShallNotPatrol.LOGGER.warn("Only 1 player, spawning patrol with normal player selection.");
             return original;
         }
 
-        //If we should spawn on a different player
+        //Create a copy of players so we don't modify the original server player list
+        ArrayList<ServerPlayer> players = new ArrayList<>(original);
         if(ServerConfig.pillagerSpawnOnDifferentPlayer.get()){
-            //Modify the list and return it
-            original.remove(youshallnotpatrol$lastTargetedPlayer);
-            YouShallNotPatrol.LOGGER.warn("Spawning patrol. Will not spawn on {} as they were the last player.", youshallnotpatrol$lastTargetedPlayer);
-            return original;
+            if(youshallnotpatrol$lastTargetedPlayer != null) {
+                players.removeIf(player -> player.getUUID() == youshallnotpatrol$lastTargetedPlayer.getUUID());
+                YouShallNotPatrol.LOGGER.warn("Spawning patrol. Will not spawn on {} as they were the last player.", youshallnotpatrol$lastTargetedPlayer);
+            }
+            return players;
         }
-
         return original;
     }
 }
