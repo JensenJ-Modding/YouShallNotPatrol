@@ -5,7 +5,8 @@
   "minVersion": "0.8",
   "client": [],
   "mixins": [
-    "PatrolSpawnerMixin"
+    "PatrolSpawnerMixin",
+    "WanderingTraderSpawnerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
