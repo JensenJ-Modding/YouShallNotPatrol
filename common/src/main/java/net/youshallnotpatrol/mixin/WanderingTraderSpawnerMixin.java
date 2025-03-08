@@ -50,7 +50,7 @@ public class WanderingTraderSpawnerMixin {
         }
 
         if(level.players().size() == 1) {
-            YouShallNotPatrol.LOGGER.warn("Only 1 player, spawning trader with normal player selection.");
+            YouShallNotPatrol.LOGGER.warn("Only 1 player, attempting to spawn trader with normal player selection.");
             return original;
         }
 
