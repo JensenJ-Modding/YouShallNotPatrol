@@ -18,27 +18,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Mixin(value = PatrolSpawner.class, priority = 100)
 public class PatrolSpawnerMixin {
 
     //We need two different variables as if the pillagers fail to spawn for whatever reason, last targeted player would be incorrect, and the same player may get targeted twice in a row.
     @Unique
-    ServerPlayer youshallnotpatrol$lastTargetedPlayer;
+    UUID youshallnotpatrol$lastTargetedPlayerUUID;
 
     @Unique
-    ServerPlayer youshallnotpatrol$selectedPlayer;
+    UUID youshallnotpatrol$selectedPlayerUUID;
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getCurrentDifficultyAt(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/DifficultyInstance;"))
     private void youshallnotpatrol$setSelectedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir, @Local Player player){
-        youshallnotpatrol$selectedPlayer = (ServerPlayer) player;
-        YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. {} is the selectedPlayer", youshallnotpatrol$selectedPlayer);
+        youshallnotpatrol$selectedPlayerUUID = player.getUUID();
+        YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. {} is the selectedPlayer", youshallnotpatrol$selectedPlayerUUID);
     }
 
     @Inject(method = "spawnPatrolMember", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/PatrollingMonster;setPatrolLeader(Z)V"))
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, boolean bl, CallbackInfoReturnable<Boolean> cir){
-        youshallnotpatrol$lastTargetedPlayer = youshallnotpatrol$selectedPlayer;
-        YouShallNotPatrol.LOGGER.warn("Patrol leader spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayer);
+        youshallnotpatrol$lastTargetedPlayerUUID = youshallnotpatrol$selectedPlayerUUID;
+        YouShallNotPatrol.LOGGER.warn("Patrol leader spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayerUUID);
     }
 
     @Inject(method = "tick", at = @At(value = "HEAD"), cancellable = true)
@@ -62,16 +63,17 @@ public class PatrolSpawnerMixin {
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;players()Ljava/util/List;"))
     private List<ServerPlayer> youshallnotpatrol$modifyPlayerList(List<ServerPlayer> original, @Local(argsOnly = true) ServerLevel level){
         if(level.players().size() == 1) {
-            YouShallNotPatrol.LOGGER.warn("Only 1 player, spawning patrol with normal player selection.");
+            YouShallNotPatrol.LOGGER.warn("Only 1 player, attempting patrol spawn with normal player selection.");
             return original;
         }
 
         //Create a copy of players so we don't modify the original server player list
         ArrayList<ServerPlayer> players = new ArrayList<>(original);
         if(ServerConfig.pillagerSpawnOnDifferentPlayer.get()){
-            if(youshallnotpatrol$lastTargetedPlayer != null) {
-                players.removeIf(player -> player.getUUID() == youshallnotpatrol$lastTargetedPlayer.getUUID());
-                YouShallNotPatrol.LOGGER.warn("Spawning patrol. Will not spawn on {} as they were the last player.", youshallnotpatrol$lastTargetedPlayer);
+            if(youshallnotpatrol$lastTargetedPlayerUUID != null) {
+                players.removeIf(player -> player.getUUID() == youshallnotpatrol$lastTargetedPlayerUUID);
+                YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. Will not spawn on {} as they were the last player. Remaining candidates: {}", youshallnotpatrol$lastTargetedPlayerUUID, players);
+
             }
             return players;
         }

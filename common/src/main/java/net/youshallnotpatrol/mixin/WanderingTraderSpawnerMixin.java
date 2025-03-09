@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Mixin(value = WanderingTraderSpawner.class, priority = 100)
 public class WanderingTraderSpawnerMixin {
@@ -25,12 +27,12 @@ public class WanderingTraderSpawnerMixin {
     @Shadow @Final private RandomSource random;
 
     @Unique
-    ServerPlayer youshallnotpatrol$lastTargetedPlayer;
+    UUID youshallnotpatrol$lastTargetedPlayerUUID;
 
     @Inject(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/ServerLevelData;setWanderingTraderId(Ljava/util/UUID;)V"))
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir, @Local Player player){
-        youshallnotpatrol$lastTargetedPlayer = (ServerPlayer) player;
-        YouShallNotPatrol.LOGGER.warn("Trader Spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayer);
+        youshallnotpatrol$lastTargetedPlayerUUID = player.getUUID();
+        YouShallNotPatrol.LOGGER.warn("Trader Spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayerUUID);
     }
 
     //Note: this method overrides the original calculation used for pillager spawn rate.
@@ -56,10 +58,11 @@ public class WanderingTraderSpawnerMixin {
 
         //If the original player was targeted last time. We will get a different player.
         if(ServerConfig.traderSpawnOnDifferentPlayer.get()) {
-            if (original == youshallnotpatrol$lastTargetedPlayer) {
-                List<ServerPlayer> players = level.players();
+            if (original.getUUID() == youshallnotpatrol$lastTargetedPlayerUUID) {
+                //We create a new arraylist to prevent modification to the original.
+                List<ServerPlayer> players = new ArrayList<>(level.players());
                 players.remove(original);
-                YouShallNotPatrol.LOGGER.warn("Spawning trader. Will not spawn on {} as they were the last player.", youshallnotpatrol$lastTargetedPlayer);
+                YouShallNotPatrol.LOGGER.warn("Spawning trader. Will not spawn on {} as they were the last player. Remaining candidates: {}", youshallnotpatrol$lastTargetedPlayerUUID, players);
                 return players.get(random.nextInt(players.size()));
             }
         }
