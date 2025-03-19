@@ -32,17 +32,25 @@ public class WanderingTraderSpawnerMixin {
     @Inject(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/ServerLevelData;setWanderingTraderId(Ljava/util/UUID;)V"))
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir, @Local Player player){
         youshallnotpatrol$lastTargetedPlayerUUID = player.getUUID();
-        YouShallNotPatrol.LOGGER.warn("Trader Spawned. Set {} to the lastTargetedPlayer", youshallnotpatrol$lastTargetedPlayerUUID);
+        if(ServerConfig.shouldLog.get()) {
+            YouShallNotPatrol.LOGGER.warn("Wandering trader spawned on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, serverLevel.players()));
+        }
     }
 
     //Note: this method overrides the original calculation used for pillager spawn rate.
     @ModifyExpressionValue(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I", ordinal = 0))
-    private int youshallnotpatrol$shouldPatrolSpawn(int original, @Local(argsOnly = true) ServerLevel level){
-        //If the returned value is 0, a patrol will try to spawn
+    private int youshallnotpatrol$shouldTraderSpawn(int original, @Local(argsOnly = true) ServerLevel level){
+        //If the returned value is 0, a trader will try to spawn
+        if(level.players().isEmpty()){
+            return 1;
+        }
         int randomChance = random.nextInt(100);
         int spawnChance = ServerConfig.traderSpawnChance.get();
-        YouShallNotPatrol.LOGGER.warn("Attempting trader spawn. Random roll was {}. Spawn chance is {}", randomChance, spawnChance);
-        return randomChance < spawnChance ? 0 : 1;
+        boolean willSpawn = randomChance < spawnChance;
+        if(ServerConfig.shouldLog.get()) {
+            YouShallNotPatrol.LOGGER.warn("Rolling wandering trader spawn. Roll: {}. Spawn: {}. Success: {}.", randomChance, spawnChance, willSpawn);
+        }
+        return willSpawn ? 0 : 1;
     }
 
     @ModifyExpressionValue(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getRandomPlayer()Lnet/minecraft/server/level/ServerPlayer;"))
@@ -52,7 +60,9 @@ public class WanderingTraderSpawnerMixin {
         }
 
         if(level.players().size() == 1) {
-            YouShallNotPatrol.LOGGER.warn("Only 1 player, attempting to spawn trader with normal player selection.");
+            if((ServerConfig.shouldLog.get() && ServerConfig.traderSpawnOnDifferentPlayer.get())) {
+                YouShallNotPatrol.LOGGER.warn("Attempting wandering trader span with only 1 player. They will be chosen as there are no other candidates.");
+            }
             return original;
         }
 
@@ -62,7 +72,10 @@ public class WanderingTraderSpawnerMixin {
                 //We create a new arraylist to prevent modification to the original.
                 List<ServerPlayer> players = new ArrayList<>(level.players());
                 players.remove(original);
-                YouShallNotPatrol.LOGGER.warn("Spawning trader. Will not spawn on {} as they were the last player. Remaining candidates: {}", youshallnotpatrol$lastTargetedPlayerUUID, players);
+                if(ServerConfig.shouldLog.get()){
+                    ArrayList<String> playerList = YouShallNotPatrol.formatPlayerList(players);
+                    YouShallNotPatrol.LOGGER.warn("Attemting wandering trader spawn. Will not spawn on {} as they were the last targeted player. Remaining candidates: {}", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, level.players()), playerList);
+                }
                 return players.get(random.nextInt(players.size()));
             }
         }

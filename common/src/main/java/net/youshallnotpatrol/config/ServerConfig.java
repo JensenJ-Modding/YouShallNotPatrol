@@ -3,9 +3,13 @@ package net.youshallnotpatrol.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class ServerConfig {
+    public static final String CATEGORY_DEBUG = "debug";
     public static final String CATEGORY_PILLAGER = "pillager";
     public static final String CATEGORY_TRADER = "trader";
     public static ForgeConfigSpec SERVER_CONFIG;
+
+    //Debug Settings
+    public static final ForgeConfigSpec.ConfigValue<Boolean> shouldLog;
 
     //Pillager Settings
     public static final ForgeConfigSpec.ConfigValue<Boolean> pillagerSpawnOnDifferentPlayer;
@@ -17,6 +21,11 @@ public class ServerConfig {
 
     static {
         ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+
+        BUILDER.comment("Pillager Patrol Settings").push(CATEGORY_DEBUG);
+        shouldLog = BUILDER.comment("Should all events be logged to the console. This includes things such as spawn chances per attempt and targeted players.")
+                .define("shouldLog", false);
+        BUILDER.pop();
 
         BUILDER.comment("Pillager Patrol Settings").push(CATEGORY_PILLAGER);
         pillagerSpawnOnDifferentPlayer = BUILDER.comment("If possible, should pillager patrols be unable to spawn on the same player twice in a row.")
