@@ -33,7 +33,7 @@ public class WanderingTraderSpawnerMixin {
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir, @Local Player player){
         youshallnotpatrol$lastTargetedPlayerUUID = player.getUUID();
         if(ServerConfig.shouldLog.get()) {
-            YouShallNotPatrol.LOGGER.warn("Wandering trader spawned on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, serverLevel.players()));
+            YouShallNotPatrol.LOGGER.info("Wandering trader spawned on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, serverLevel.players()));
         }
     }
 
@@ -48,7 +48,7 @@ public class WanderingTraderSpawnerMixin {
         int spawnChance = ServerConfig.traderSpawnChance.get();
         boolean willSpawn = randomChance < spawnChance;
         if(ServerConfig.shouldLog.get()) {
-            YouShallNotPatrol.LOGGER.warn("Rolling wandering trader spawn. Roll: {}. Spawn: {}. Success: {}.", randomChance, spawnChance, willSpawn);
+            YouShallNotPatrol.LOGGER.info("Rolling wandering trader spawn. Roll: {}. Spawn: {}. Success: {}.", randomChance, spawnChance, willSpawn);
         }
         return willSpawn ? 0 : 1;
     }
@@ -61,7 +61,7 @@ public class WanderingTraderSpawnerMixin {
 
         if(level.players().size() == 1) {
             if((ServerConfig.shouldLog.get() && ServerConfig.traderSpawnOnDifferentPlayer.get())) {
-                YouShallNotPatrol.LOGGER.warn("Attempting wandering trader span with only 1 player. They will be chosen as there are no other candidates.");
+                YouShallNotPatrol.LOGGER.info("Attempting wandering trader span with only 1 player. They will be chosen as there are no other candidates.");
             }
             return original;
         }
@@ -74,7 +74,7 @@ public class WanderingTraderSpawnerMixin {
                 players.remove(original);
                 if(ServerConfig.shouldLog.get()){
                     ArrayList<String> playerList = YouShallNotPatrol.formatPlayerList(players);
-                    YouShallNotPatrol.LOGGER.warn("Attemting wandering trader spawn. Will not spawn on {} as they were the last targeted player. Remaining candidates: {}", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, level.players()), playerList);
+                    YouShallNotPatrol.LOGGER.info("Attemting wandering trader spawn. Will not spawn on {} as they were the last targeted player. Remaining candidates: {}", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, level.players()), playerList);
                 }
                 return players.get(random.nextInt(players.size()));
             }

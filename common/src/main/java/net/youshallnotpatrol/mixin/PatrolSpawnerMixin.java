@@ -34,7 +34,7 @@ public class PatrolSpawnerMixin {
     private void youshallnotpatrol$setSelectedPlayer(ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir, @Local Player player){
         youshallnotpatrol$selectedPlayerUUID = player.getUUID();
         if(ServerConfig.shouldLog.get()) {
-            YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$selectedPlayerUUID, serverLevel.players()));
+            YouShallNotPatrol.LOGGER.info("Attempting patrol spawn on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$selectedPlayerUUID, serverLevel.players()));
         }
     }
 
@@ -42,7 +42,7 @@ public class PatrolSpawnerMixin {
     private void youshallnotpatrol$setLastTargetedPlayer(ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, boolean bl, CallbackInfoReturnable<Boolean> cir){
         youshallnotpatrol$lastTargetedPlayerUUID = youshallnotpatrol$selectedPlayerUUID;
         if(ServerConfig.shouldLog.get()) {
-            YouShallNotPatrol.LOGGER.warn("Patrol spawned on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, serverLevel.players()));
+            YouShallNotPatrol.LOGGER.info("Patrol spawned on {}.", YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, serverLevel.players()));
         }
     }
 
@@ -65,7 +65,7 @@ public class PatrolSpawnerMixin {
         int spawnChance = ServerConfig.pillagerSpawnChance.get();
         boolean willSpawn = randomChance < spawnChance;
         if(ServerConfig.shouldLog.get()) {
-            YouShallNotPatrol.LOGGER.warn("Rolling patrol spawn. Roll: {}. Spawn: {}. Success: {}.", randomChance, spawnChance, willSpawn);
+            YouShallNotPatrol.LOGGER.info("Rolling patrol spawn. Roll: {}. Spawn: {}. Success: {}.", randomChance, spawnChance, willSpawn);
         }
         return willSpawn ? 0 : 1;
     }
@@ -74,7 +74,7 @@ public class PatrolSpawnerMixin {
     private List<ServerPlayer> youshallnotpatrol$modifyPlayerList(List<ServerPlayer> original, @Local(argsOnly = true) ServerLevel level){
         if(level.players().size() == 1) {
             if(ServerConfig.shouldLog.get() && ServerConfig.pillagerSpawnOnDifferentPlayer.get()) {
-                YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn with only 1 player. They will be chosen as there are no other candidates.");
+                YouShallNotPatrol.LOGGER.info("Attempting patrol spawn with only 1 player. They will be chosen as there are no other candidates.");
             }
             return original;
         }
@@ -86,7 +86,7 @@ public class PatrolSpawnerMixin {
                 players.removeIf(player -> player.getUUID() == youshallnotpatrol$lastTargetedPlayerUUID);
                 if(ServerConfig.shouldLog.get()) {
                     ArrayList<String> playerList = YouShallNotPatrol.formatPlayerList(players);
-                    YouShallNotPatrol.LOGGER.warn("Attempting patrol spawn. Will not spawn on {} as they were the last targeted player. Remaining candidates: {}",
+                    YouShallNotPatrol.LOGGER.info("Attempting patrol spawn. Will not spawn on {} as they were the last targeted player. Remaining candidates: {}",
                             YouShallNotPatrol.getPlayerNameFromUUID(youshallnotpatrol$lastTargetedPlayerUUID, level.players()), playerList);
                 }
             }
