@@ -22,7 +22,7 @@ public class ServerConfig {
     static {
         ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-        BUILDER.comment("Pillager Patrol Settings").push(CATEGORY_DEBUG);
+        BUILDER.comment("Debug/dev settings").push(CATEGORY_DEBUG);
         shouldLog = BUILDER.comment("Should all events be logged to the console. This includes things such as spawn chances per attempt and targeted players.")
                 .define("shouldLog", false);
         BUILDER.pop();
