@@ -61,7 +61,7 @@ public class WanderingTraderSpawnerMixin {
 
         if(level.players().size() == 1) {
             if((ServerConfig.shouldLog.get() && ServerConfig.traderSpawnOnDifferentPlayer.get())) {
-                YouShallNotPatrol.LOGGER.info("Attempting wandering trader span with only 1 player. They will be chosen as there are no other candidates.");
+                YouShallNotPatrol.LOGGER.info("Attempting wandering trader spawn with only 1 player. They will be chosen as there are no other candidates.");
             }
             return original;
         }
