@@ -1,6 +1,0 @@
-plugins {
-    id 'com.github.johnrengelman.shadow'
-}
-
-apply from: 'https://raw.githubusercontent.com/JensenJ-Modding/Mod-Resources/refs/heads/main/1.20.1/Gradle/forge-build.gradle'
-

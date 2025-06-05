@@ -1,26 +1,26 @@
 package net.youshallnotpatrol.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ServerConfig {
     public static final String CATEGORY_DEBUG = "debug";
     public static final String CATEGORY_PILLAGER = "pillager";
     public static final String CATEGORY_TRADER = "trader";
-    public static ForgeConfigSpec SERVER_CONFIG;
+    public static ModConfigSpec SERVER_CONFIG;
 
     // Debug Settings
-    public static final ForgeConfigSpec.ConfigValue<Boolean> shouldLog;
+    public static final ModConfigSpec.ConfigValue<Boolean> shouldLog;
 
     // Pillager Settings
-    public static final ForgeConfigSpec.ConfigValue<Boolean> pillagerSpawnOnDifferentPlayer;
-    public static final ForgeConfigSpec.ConfigValue<Integer> pillagerSpawnChance;
+    public static final ModConfigSpec.ConfigValue<Boolean> pillagerSpawnOnDifferentPlayer;
+    public static final ModConfigSpec.ConfigValue<Integer> pillagerSpawnChance;
 
     // Trader Settings
-    public static final ForgeConfigSpec.ConfigValue<Boolean> traderSpawnOnDifferentPlayer;
-    public static final ForgeConfigSpec.ConfigValue<Integer> traderSpawnChance;
+    public static final ModConfigSpec.ConfigValue<Boolean> traderSpawnOnDifferentPlayer;
+    public static final ModConfigSpec.ConfigValue<Integer> traderSpawnChance;
 
     static {
-        ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
         BUILDER.comment("Debug/dev settings").push(CATEGORY_DEBUG);
         shouldLog = BUILDER.comment(
