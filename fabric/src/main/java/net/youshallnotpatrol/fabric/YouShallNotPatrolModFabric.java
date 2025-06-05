@@ -1,7 +1,6 @@
 package net.youshallnotpatrol.fabric;
 
 import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
-
 import net.fabricmc.api.ModInitializer;
 import net.neoforged.fml.config.ModConfig;
 import net.youshallnotpatrol.YouShallNotPatrol;
