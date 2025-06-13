@@ -7,10 +7,11 @@ license = "MIT License"
 modId = "youshallnotpatrol"
 version = "${version}"
 displayName = "You Shall Not Patrol"
-authors = "JensenJ - Developer"
+authors = "JensenJ - Developer, Yame5 - Artist"
 description = '''
 Adds controls for the spawning of Pillagers and Wandering Traders.
 '''
+logoFile = "logo.png"
 
 [[dependencies.youshallnotpatrol]]
 modId = "neoforge"

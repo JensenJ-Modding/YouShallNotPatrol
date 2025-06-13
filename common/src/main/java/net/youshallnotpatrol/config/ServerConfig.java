@@ -40,7 +40,7 @@ public class ServerConfig {
         BUILDER.comment("Wandering Trader Settings").push(CATEGORY_TRADER);
         traderSpawnOnDifferentPlayer = BUILDER.comment(
                         "If possible, should wandering traders be unable to spawn on the same player twice in a row.")
-                .define("pillagerSpawnOnDifferentPlayer", true);
+                .define("traderSpawnOnDifferentPlayer", true);
         traderSpawnChance = BUILDER.comment(
                         "The spawn chance (%) for a wandering trader to spawn on a selected player when an attempt is made.")
                 .defineInRange("traderSpawnChance", 10, 0, 100);
