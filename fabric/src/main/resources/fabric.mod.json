@@ -5,13 +5,15 @@
   "name": "You Shall Not Patrol",
   "description": "Adds controls for the spawning of Pillagers and Wandering Traders.",
   "authors": [
-    "JensenJ - Developer"
+    "JensenJ - Developer",
+    "Yame5 - Artist"
   ],
   "contact": {
     "sources": "https://github.com/JensenJ-Modding/YouShallNotPatrol",
     "issues": "https://github.com/JensenJ-Modding/YouShallNotPatrol/issues"
   },
   "license": "MIT License",
+  "icon": "logo.png",
   "environment": "*",
   "entrypoints": {
     "main": [
